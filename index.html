@@ -52,9 +52,18 @@
   </script>
 
   <style>
-    /* Safe-area insets for iOS notch and home-bar */
+    /* Khoảng trống an toàn tránh tai thỏ / Dynamic Island / Sóng Wi-Fi & Pin trên iPhone */
+    .ios-status-bar-spacer {
+      padding-top: 38px; /* Lùi xuống ~1cm trên thiết bị di động */
+      padding-top: max(env(safe-area-inset-top, 0px), 38px);
+    }
+    @media (min-width: 1024px) {
+      .ios-status-bar-spacer {
+        padding-top: env(safe-area-inset-top, 0px);
+      }
+    }
+
     body {
-      padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
       -webkit-tap-highlight-color: transparent;
     }
@@ -113,8 +122,8 @@
 </head>
 <body class="font-sans theme-light text-slate-800 antialiased min-h-screen flex flex-col selection:bg-rose-500 selection:text-white transition-colors duration-200">
 
-  <!-- Main App Header -->
-  <header id="mainHeader" class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
+  <!-- Main App Header (Đã bổ sung ios-status-bar-spacer để tụt xuống dưới pin và tai thỏ) -->
+  <header id="mainHeader" class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors ios-status-bar-spacer">
     <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
       <!-- Left: Mobile Menu & Logo -->
       <div class="flex items-center gap-3">
@@ -165,7 +174,7 @@
   <div id="viewCatalog" class="flex-1 max-w-7xl mx-auto w-full px-4 py-6 flex flex-col lg:flex-row gap-6">
     <!-- Left Sidebar / Category Filter -->
     <aside id="sidebarFilter" class="hidden lg:block w-60 shrink-0">
-      <div class="sticky top-20 bg-white dark:bg-slate-850 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div class="sticky top-24 bg-white dark:bg-slate-850 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div class="flex items-center justify-between mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
           <span>Thể Loại Truyện</span>
           <i class="fa-solid fa-layer-group text-rose-500"></i>
@@ -195,7 +204,7 @@
 
     <!-- Mobile Drawer for Category Filter -->
     <div id="mobileDrawerOverlay" class="fixed inset-0 bg-black/60 z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
-    <div id="mobileCategoryDrawer" class="fixed top-0 bottom-0 left-0 w-72 bg-white dark:bg-slate-900 z-50 -translate-x-full transition-transform duration-300 p-5 flex flex-col overflow-y-auto">
+    <div id="mobileCategoryDrawer" class="fixed top-0 bottom-0 left-0 w-72 bg-white dark:bg-slate-900 z-50 -translate-x-full transition-transform duration-300 p-5 flex flex-col overflow-y-auto ios-status-bar-spacer">
       <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
         <h3 class="font-bold text-base text-slate-800 dark:text-slate-100">Thể Loại Truyện</h3>
         <button id="btnCloseMobileDrawer" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">
@@ -243,7 +252,7 @@
 
   <!-- STORY DETAIL MODAL / VIEW -->
   <div id="storyDetailModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200 flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div id="storyDetailContent" class="bg-white dark:bg-slate-900 w-full max-w-2xl max-h-[92vh] sm:max-h-[85vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden transform translate-y-8 transition-transform duration-200 border border-slate-200 dark:border-slate-800">
+    <div id="storyDetailContent" class="bg-white dark:bg-slate-900 w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden transform translate-y-8 transition-transform duration-200 border border-slate-200 dark:border-slate-800">
       <!-- Detail Header -->
       <div class="relative p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex gap-4 items-start bg-gradient-to-b from-rose-50/50 to-transparent dark:from-rose-950/20">
         <img id="detailCover" src="" alt="Cover" class="w-24 h-36 sm:w-32 sm:h-48 object-cover rounded-xl shadow-md shrink-0 border border-black/10">
@@ -267,7 +276,7 @@
             <button id="btnEditStoryCMS" class="hidden px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold items-center gap-1.5 transition">
               <i class="fa-solid fa-file-pen"></i> Chỉnh sửa
             </button>
-            <!-- Nút Xóa Truyện Bảo Mật (Chỉ hiện khi đã đăng nhập Admin PIN) -->
+            <!-- Nút Xóa Truyện Bảo Mật -->
             <button id="btnDeleteStory" class="hidden px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 dark:text-rose-400 rounded-xl text-xs font-semibold items-center gap-1.5 transition border border-rose-200 dark:border-rose-900">
               <i class="fa-solid fa-trash-can"></i> Xóa truyện
             </button>
@@ -302,33 +311,35 @@
 
   <!-- FULL READER VIEW -->
   <div id="viewReader" class="hidden fixed inset-0 z-50 flex flex-col bg-inherit overflow-y-auto transition-colors">
-    <!-- Reader Top Bar -->
-    <div id="readerNavbar" class="sticky top-0 z-30 flex items-center justify-between px-3 sm:px-6 h-14 bg-white/95 dark:bg-slate-900/95 border-b border-slate-200/80 dark:border-slate-800 backdrop-blur-md transition-colors">
-      <div class="flex items-center gap-2">
-        <button id="btnReaderBack" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-inherit transition flex items-center gap-1.5 text-sm font-medium">
-          <i class="fa-solid fa-arrow-left"></i>
-          <span class="hidden sm:inline">Quay lại</span>
-        </button>
-        <span class="text-slate-300 dark:text-slate-700">|</span>
-        <div class="min-w-0 max-w-[160px] sm:max-w-xs md:max-w-md">
-          <div id="readerBookTitle" class="text-xs text-slate-500 dark:text-slate-400 truncate">Tên truyện</div>
-          <div id="readerChapterNavTitle" class="text-sm font-bold truncate">Chương 1: Tiêu đề</div>
+    <!-- Reader Top Bar (Đã bổ sung ios-status-bar-spacer) -->
+    <div id="readerNavbar" class="sticky top-0 z-30 flex flex-col justify-end bg-white/95 dark:bg-slate-900/95 border-b border-slate-200/80 dark:border-slate-800 backdrop-blur-md transition-colors ios-status-bar-spacer">
+      <div class="flex items-center justify-between px-3 sm:px-6 h-14">
+        <div class="flex items-center gap-2">
+          <button id="btnReaderBack" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-inherit transition flex items-center gap-1.5 text-sm font-medium">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span class="hidden sm:inline">Quay lại</span>
+          </button>
+          <span class="text-slate-300 dark:text-slate-700">|</span>
+          <div class="min-w-0 max-w-[160px] sm:max-w-xs md:max-w-md">
+            <div id="readerBookTitle" class="text-xs text-slate-500 dark:text-slate-400 truncate">Tên truyện</div>
+            <div id="readerChapterNavTitle" class="text-sm font-bold truncate">Chương 1: Tiêu đề</div>
+          </div>
         </div>
-      </div>
 
-      <div class="flex items-center gap-1.5 sm:gap-2">
-        <button id="btnReaderTOC" class="px-2.5 py-1.5 rounded-lg bg-black/5 dark:bg-white/10 hover:bg-black/10 text-xs font-semibold flex items-center gap-1">
-          <i class="fa-solid fa-list-ul"></i>
-          <span class="hidden sm:inline">Mục lục</span>
-        </button>
-        <button id="btnReaderSettings" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-inherit">
-          <i class="fa-solid fa-font"></i>
-        </button>
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <button id="btnReaderTOC" class="px-2.5 py-1.5 rounded-lg bg-black/5 dark:bg-white/10 hover:bg-black/10 text-xs font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-list-ul"></i>
+            <span class="hidden sm:inline">Mục lục</span>
+          </button>
+          <button id="btnReaderSettings" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-inherit">
+            <i class="fa-solid fa-font"></i>
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Reader Settings Popup Box -->
-    <div id="readerSettingsPanel" class="hidden sticky top-14 z-40 max-w-xl mx-auto w-full px-4 py-3 bg-white/95 dark:bg-slate-850/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 mt-2 space-y-3">
+    <div id="readerSettingsPanel" class="hidden sticky top-24 z-40 max-w-xl mx-auto w-full px-4 py-3 bg-white/95 dark:bg-slate-850/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 mt-2 space-y-3">
       <!-- Theme Selection -->
       <div class="flex items-center justify-between text-xs">
         <span class="font-medium text-slate-500">Màu giấy nền</span>
@@ -739,7 +750,6 @@
 
     function updateAdminUIState() {
       if (isAdminUnlocked) {
-        // Unlocked mode
         adminLockIcon.className = "fa-solid fa-lock-open text-xs text-emerald-500";
         adminLockText.textContent = "Đã mở khóa";
         btnAdminToggle.className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-all bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800";
@@ -749,7 +759,6 @@
         btnDeleteStory.classList.remove("hidden");
         btnDeleteStory.classList.add("flex");
       } else {
-        // Reader mode (Restricted)
         adminLockIcon.className = "fa-solid fa-lock text-xs text-slate-400";
         adminLockText.textContent = "Tác giả";
         btnAdminToggle.className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-all bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 hover:bg-slate-200";
@@ -773,7 +782,6 @@
 
     btnAdminToggle.onclick = () => {
       if (isAdminUnlocked) {
-        // Click to lock back
         isAdminUnlocked = false;
         sessionStorage.setItem("app_admin_unlocked", "false");
         updateAdminUIState();
@@ -846,7 +854,6 @@
       const idx = stories.findIndex(s => s.id === pendingDeleteBookId);
       if (idx !== -1) {
         const deletedTitle = stories[idx].title;
-        // Remove progress
         localStorage.removeItem(`reading_progress_${pendingDeleteBookId}`);
         stories.splice(idx, 1);
         saveStoriesToStorage();
@@ -897,7 +904,6 @@
       categoryNavList.innerHTML = createNavHTML(false);
       mobileCategoryNavList.innerHTML = createNavHTML(true);
 
-      // Bind click events
       document.querySelectorAll(".cat-nav-btn").forEach(btn => {
         btn.onclick = () => {
           selectedCategory = btn.getAttribute("data-cat");
@@ -907,7 +913,6 @@
         };
       });
 
-      // Update counters
       const compCount = stories.filter(s => s.status === 'completed').length;
       document.getElementById("statAllCount").textContent = stories.length;
       document.getElementById("statCompCount").textContent = compCount;
@@ -923,14 +928,12 @@
         return matchCategory && matchStatus && matchSearch;
       });
 
-      // Sort
       if (currentSort === "name") {
         filtered.sort((a, b) => a.title.localeCompare(b.title));
       } else if (currentSort === "chapters") {
         filtered.sort((a, b) => (b.chapters ? b.chapters.length : 0) - (a.chapters ? a.chapters.length : 0));
       }
 
-      // Title & badge
       currentCategoryTitle.textContent = selectedCategory === "all" ? "Tất Cả Tác Phẩm" : selectedCategory;
       storyCountBadge.textContent = `${filtered.length} bộ`;
 
@@ -974,7 +977,6 @@
         `;
       }).join("");
 
-      // Bind click on story cards
       document.querySelectorAll(".book-card").forEach(card => {
         card.onclick = () => {
           const id = card.getAttribute("data-book-id");
@@ -1001,7 +1003,6 @@
       detailStats.innerHTML = `<i class="fa-regular fa-folder-open mr-1"></i>${totalChapters} Chương • Tự động ghi nhớ trang đọc`;
       detailChapterCount.textContent = `${totalChapters} chương`;
 
-      // Check saved progress
       const savedChIdx = localStorage.getItem(`reading_progress_${activeBook.id}`);
       if (savedChIdx !== null) {
         const nextNum = parseInt(savedChIdx) + 1;
@@ -1010,10 +1011,8 @@
         readButtonText.textContent = "Bắt đầu đọc";
       }
 
-      // Check Admin permissions for Delete & Edit button visibility
       updateAdminUIState();
 
-      // Render chapters in detail modal
       if (totalChapters === 0) {
         detailChapterList.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">Chưa có chương nào. Hãy bấm Chỉnh sửa để thêm chương đầu tiên!</div>`;
       } else {
@@ -1036,7 +1035,6 @@
         });
       }
 
-      // Button listeners in modal
       btnReadStart.onclick = () => {
         const startIdx = savedChIdx !== null ? parseInt(savedChIdx) : 0;
         closeStoryDetail();
@@ -1048,7 +1046,6 @@
         openCMSModal(activeBook);
       };
 
-      // Show modal
       storyDetailModal.classList.remove("opacity-0", "pointer-events-none");
       storyDetailContent.classList.remove("translate-y-8");
     }
@@ -1069,23 +1066,19 @@
       if (chapterIndex >= activeBook.chapters.length) chapterIndex = activeBook.chapters.length - 1;
       activeChapterIndex = chapterIndex;
 
-      // Save reading progress
       localStorage.setItem(`reading_progress_${activeBook.id}`, activeChapterIndex);
       localStorage.setItem("last_opened_book_id", activeBook.id);
 
       const ch = activeBook.chapters[activeChapterIndex];
 
-      // Update Texts
       readerBookTitle.textContent = activeBook.title;
       readerChapterNavTitle.textContent = `Chương ${ch.id || (activeChapterIndex + 1)}: ${ch.title}`;
       readerSubBook.textContent = activeBook.title;
       readerTitle.textContent = `Chương ${ch.id || (activeChapterIndex + 1)}: ${ch.title}`;
 
-      // Convert linebreaks to paragraphs
       const paragraphs = ch.content.split("\n").filter(p => p.trim().length > 0);
       readerBody.innerHTML = paragraphs.map(p => `<p>${p.trim()}</p>`).join("");
 
-      // Prev / Next button state
       btnPrevChap.disabled = activeChapterIndex === 0;
       btnPrevChap.style.opacity = activeChapterIndex === 0 ? "0.3" : "1";
       btnPrevChap.style.pointerEvents = activeChapterIndex === 0 ? "none" : "auto";
@@ -1094,10 +1087,7 @@
       btnNextChap.style.opacity = activeChapterIndex === activeBook.chapters.length - 1 ? "0.3" : "1";
       btnNextChap.style.pointerEvents = activeChapterIndex === activeBook.chapters.length - 1 ? "none" : "auto";
 
-      // Render TOC Drawer list
       renderReaderTOC();
-
-      // Show Reader view and hide Catalog
       applyReaderStyles();
       viewReader.classList.remove("hidden");
       window.scrollTo(0, 0);
@@ -1107,7 +1097,7 @@
     function closeReader() {
       viewReader.classList.add("hidden");
       readerSettingsPanel.classList.add("hidden");
-      renderStoriesGrid(); // Refresh progress badges
+      renderStoriesGrid();
     }
 
     function renderReaderTOC() {
@@ -1132,14 +1122,11 @@
     }
 
     function applyReaderStyles() {
-      // Background and theme
       document.body.className = `font-${readerFont} theme-${readerTheme} antialiased min-h-screen flex flex-col selection:bg-rose-500 selection:text-white transition-colors duration-200`;
       
-      // Font size
       readerBody.style.fontSize = `${readerFontSize}px`;
       document.getElementById("currentFontSizeLabel").textContent = readerFontSize;
 
-      // Font Family toggle
       if (readerFont === 'serif') {
         document.getElementById("btnFontSerif").className = "px-3 py-1 text-xs rounded-md font-serif bg-white dark:bg-slate-700 shadow-xs font-medium";
         document.getElementById("btnFontSans").className = "px-3 py-1 text-xs rounded-md font-sans text-slate-500";
@@ -1148,13 +1135,11 @@
         document.getElementById("btnFontSerif").className = "px-3 py-1 text-xs rounded-md font-serif text-slate-500";
       }
 
-      // Save preferences
       localStorage.setItem("reader_theme", readerTheme);
       localStorage.setItem("reader_font", readerFont);
       localStorage.setItem("reader_font_size", readerFontSize);
     }
 
-    // Reader TOC Drawer toggles
     function openReaderTOC() {
       readerTOCDrawerOverlay.classList.remove("opacity-0", "pointer-events-none");
       readerTOCDrawer.classList.remove("translate-y-full");
@@ -1214,7 +1199,6 @@
       const summary = cmsSummary.value.trim();
 
       if (bookId) {
-        // Edit existing
         const book = stories.find(s => s.id === bookId);
         if (book) {
           book.title = title;
@@ -1223,7 +1207,6 @@
           book.cover = cover;
           book.summary = summary;
 
-          // If adding a chapter directly through CMS
           const newChapTitle = cmsChap1Title.value.trim();
           const newChapContent = cmsChap1Content.value.trim();
           if (newChapTitle && newChapContent) {
@@ -1236,7 +1219,6 @@
           showToast("Đã cập nhật tác phẩm thành công!");
         }
       } else {
-        // Add new story
         const newId = "truyen-" + Date.now();
         const initialChapters = [];
         const ch1Title = cmsChap1Title.value.trim();
@@ -1269,7 +1251,6 @@
       closeCMSModal();
     }
 
-    // Export & Import Helpers
     function exportJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stories, null, 2));
       const downloadAnchor = document.createElement('a');
@@ -1410,36 +1391,32 @@
       if (activeChapterIndex < activeBook.chapters.length - 1) openReader(activeBook.id, activeChapterIndex + 1);
     };
 
-    // Reader Settings Toggle
     btnReaderSettings.onclick = () => {
       readerSettingsPanel.classList.toggle("hidden");
     };
 
-    // Font Size +/-
-    document.getElementById("btnFontIncrease").onclick = () => {
+    btnFontIncrease.onclick = () => {
       if (readerFontSize < 28) {
         readerFontSize += 1;
         applyReaderStyles();
       }
     };
-    document.getElementById("btnFontDecrease").onclick = () => {
+    btnFontDecrease.onclick = () => {
       if (readerFontSize > 14) {
         readerFontSize -= 1;
         applyReaderStyles();
       }
     };
 
-    // Font Family
-    document.getElementById("btnFontSans").onclick = () => {
+    btnFontSans.onclick = () => {
       readerFont = "sans";
       applyReaderStyles();
     };
-    document.getElementById("btnFontSerif").onclick = () => {
+    btnFontSerif.onclick = () => {
       readerFont = "serif";
       applyReaderStyles();
     };
 
-    // Reader Themes
     document.querySelectorAll("[data-theme]").forEach(btn => {
       btn.onclick = () => {
         readerTheme = btn.getAttribute("data-theme");
@@ -1447,12 +1424,10 @@
       };
     });
 
-    // Header Dark/Light mode toggle
     document.getElementById("btnHeaderTheme").onclick = () => {
       document.documentElement.classList.toggle("dark");
     };
 
-    // CMS Modal
     btnOpenCMS.onclick = () => openCMSModal(null);
     btnCloseCMS.onclick = closeCMSModal;
     btnCancelCMS.onclick = closeCMSModal;
