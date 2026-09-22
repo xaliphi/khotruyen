@@ -39,9 +39,9 @@
               700: '#9f1239'
             },
             sepia: {
-              base: '#f4ecd8',
+              base: '#f5eedb',
               card: '#eae1ca',
-              text: '#433422',
+              text: '#3b2d1d',
               muted: '#786851',
               border: '#dad0b8'
             }
@@ -52,14 +52,14 @@
   </script>
 
   <style>
-    /* Khoảng trống an toàn tránh tai thỏ / Dynamic Island / Sóng Wi-Fi & Pin trên iPhone */
+    /* Khoảng đệm an toàn tránh hoàn toàn Tai Thỏ / Dynamic Island / Cột sóng & Pin trên iPhone */
     .ios-status-bar-spacer {
-      padding-top: 38px; /* Lùi xuống ~1cm trên thiết bị di động */
-      padding-top: max(env(safe-area-inset-top, 0px), 38px);
+      padding-top: 54px; /* Mặc định lùi xuống sâu hơn trên iOS (~1.5cm) */
+      padding-top: max(calc(env(safe-area-inset-top, 0px) + 12px), 54px);
     }
     @media (min-width: 1024px) {
       .ios-status-bar-spacer {
-        padding-top: env(safe-area-inset-top, 0px);
+        padding-top: 0px;
       }
     }
 
@@ -111,6 +111,24 @@
       color: #d1d5db;
     }
 
+    /* Reader Navbar Theme Adaptations */
+    body.theme-light #readerNavbar {
+      background-color: rgba(255, 255, 255, 0.96);
+      border-bottom-color: #e2e8f0;
+    }
+    body.theme-sepia #readerNavbar {
+      background-color: rgba(245, 238, 219, 0.96);
+      border-bottom-color: #dad0b8;
+    }
+    body.theme-dark #readerNavbar {
+      background-color: rgba(15, 23, 42, 0.96);
+      border-bottom-color: #1e293b;
+    }
+    body.theme-black #readerNavbar {
+      background-color: rgba(0, 0, 0, 0.96);
+      border-bottom-color: #27272a;
+    }
+
     .fade-in {
       animation: fadeIn 0.2s ease-out forwards;
     }
@@ -122,7 +140,7 @@
 </head>
 <body class="font-sans theme-light text-slate-800 antialiased min-h-screen flex flex-col selection:bg-rose-500 selection:text-white transition-colors duration-200">
 
-  <!-- Main App Header (Đã bổ sung ios-status-bar-spacer để tụt xuống dưới pin và tai thỏ) -->
+  <!-- Main App Header (Tủ Truyện) -->
   <header id="mainHeader" class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors ios-status-bar-spacer">
     <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
       <!-- Left: Mobile Menu & Logo -->
@@ -252,7 +270,7 @@
 
   <!-- STORY DETAIL MODAL / VIEW -->
   <div id="storyDetailModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200 flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div id="storyDetailContent" class="bg-white dark:bg-slate-900 w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden transform translate-y-8 transition-transform duration-200 border border-slate-200 dark:border-slate-800">
+    <div id="storyDetailContent" class="bg-white dark:bg-slate-900 w-full max-w-2xl max-h-[85vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden transform translate-y-8 transition-transform duration-200 border border-slate-200 dark:border-slate-800">
       <!-- Detail Header -->
       <div class="relative p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex gap-4 items-start bg-gradient-to-b from-rose-50/50 to-transparent dark:from-rose-950/20">
         <img id="detailCover" src="" alt="Cover" class="w-24 h-36 sm:w-32 sm:h-48 object-cover rounded-xl shadow-md shrink-0 border border-black/10">
@@ -309,20 +327,20 @@
     </div>
   </div>
 
-  <!-- FULL READER VIEW -->
-  <div id="viewReader" class="hidden fixed inset-0 z-50 flex flex-col bg-inherit overflow-y-auto transition-colors">
-    <!-- Reader Top Bar (Đã bổ sung ios-status-bar-spacer) -->
-    <div id="readerNavbar" class="sticky top-0 z-30 flex flex-col justify-end bg-white/95 dark:bg-slate-900/95 border-b border-slate-200/80 dark:border-slate-800 backdrop-blur-md transition-colors ios-status-bar-spacer">
+  <!-- FULL READER VIEW (Cấu trúc Flex Column Cố Định: Thanh điều hướng luôn ở dưới tai thỏ, không bao giờ bị che khuất) -->
+  <div id="viewReader" class="hidden fixed inset-0 z-50 flex flex-col bg-inherit transition-colors">
+    <!-- Reader Top Bar -->
+    <div id="readerNavbar" class="shrink-0 z-30 flex flex-col justify-end backdrop-blur-md transition-colors border-b ios-status-bar-spacer relative">
       <div class="flex items-center justify-between px-3 sm:px-6 h-14">
         <div class="flex items-center gap-2">
-          <button id="btnReaderBack" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-inherit transition flex items-center gap-1.5 text-sm font-medium">
+          <button id="btnReaderBack" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-inherit transition flex items-center gap-1.5 text-sm font-semibold">
             <i class="fa-solid fa-arrow-left"></i>
-            <span class="hidden sm:inline">Quay lại</span>
+            <span class="inline">Tủ truyện</span>
           </button>
           <span class="text-slate-300 dark:text-slate-700">|</span>
-          <div class="min-w-0 max-w-[160px] sm:max-w-xs md:max-w-md">
+          <div class="min-w-0 max-w-[140px] sm:max-w-xs md:max-w-md">
             <div id="readerBookTitle" class="text-xs text-slate-500 dark:text-slate-400 truncate">Tên truyện</div>
-            <div id="readerChapterNavTitle" class="text-sm font-bold truncate">Chương 1: Tiêu đề</div>
+            <div id="readerChapterNavTitle" class="text-sm font-bold truncate">Chương 1</div>
           </div>
         </div>
 
@@ -336,69 +354,71 @@
           </button>
         </div>
       </div>
+
+      <!-- Reader Settings Dropdown Panel -->
+      <div id="readerSettingsPanel" class="hidden absolute top-full left-0 right-0 z-40 max-w-xl mx-auto px-4 py-3 bg-white/95 dark:bg-slate-850/95 backdrop-blur-md rounded-b-2xl shadow-xl border-x border-b border-slate-200 dark:border-slate-700 space-y-3">
+        <!-- Theme Selection -->
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-medium text-slate-500">Màu giấy nền</span>
+          <div class="flex gap-2">
+            <button data-theme="light" class="w-8 h-8 rounded-full bg-[#f8fafc] border-2 border-slate-300 shadow-sm" title="Sáng"></button>
+            <button data-theme="sepia" class="w-8 h-8 rounded-full bg-[#f5eedb] border-2 border-[#dad0b8] shadow-sm" title="Vàng sepia dịu mắt"></button>
+            <button data-theme="dark" class="w-8 h-8 rounded-full bg-[#0f172a] border-2 border-slate-600 shadow-sm" title="Đêm"></button>
+            <button data-theme="black" class="w-8 h-8 rounded-full bg-black border-2 border-slate-700 shadow-sm" title="OLED tối tuyệt đối"></button>
+          </div>
+        </div>
+
+        <!-- Font Type -->
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-medium text-slate-500">Kiểu chữ</span>
+          <div class="flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5">
+            <button id="btnFontSans" class="px-3 py-1 text-xs rounded-md font-sans bg-white dark:bg-slate-700 shadow-xs font-medium">Không chân</button>
+            <button id="btnFontSerif" class="px-3 py-1 text-xs rounded-md font-serif text-slate-500">Có chân</button>
+          </div>
+        </div>
+
+        <!-- Font Size -->
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-medium text-slate-500">Cỡ chữ</span>
+          <div class="flex items-center gap-3">
+            <button id="btnFontDecrease" class="w-7 h-7 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-sm">A-</button>
+            <span id="currentFontSizeLabel" class="text-xs font-semibold w-6 text-center">19</span>
+            <button id="btnFontIncrease" class="w-7 h-7 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-sm">A+</button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Reader Settings Popup Box -->
-    <div id="readerSettingsPanel" class="hidden sticky top-24 z-40 max-w-xl mx-auto w-full px-4 py-3 bg-white/95 dark:bg-slate-850/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 mt-2 space-y-3">
-      <!-- Theme Selection -->
-      <div class="flex items-center justify-between text-xs">
-        <span class="font-medium text-slate-500">Màu giấy nền</span>
-        <div class="flex gap-2">
-          <button data-theme="light" class="w-8 h-8 rounded-full bg-[#f8fafc] border-2 border-slate-300 shadow-sm" title="Sáng"></button>
-          <button data-theme="sepia" class="w-8 h-8 rounded-full bg-[#f5eedb] border-2 border-[#dad0b8] shadow-sm" title="Vàng sepia dịu mắt"></button>
-          <button data-theme="dark" class="w-8 h-8 rounded-full bg-[#0f172a] border-2 border-slate-600 shadow-sm" title="Đêm"></button>
-          <button data-theme="black" class="w-8 h-8 rounded-full bg-black border-2 border-slate-700 shadow-sm" title="OLED tối tuyệt đối"></button>
+    <!-- Reading Story Body Area (Khu vực cuộn văn bản độc lập) -->
+    <div id="readerScrollContainer" class="flex-1 overflow-y-auto">
+      <div class="max-w-2xl mx-auto w-full px-5 sm:px-8 py-6 sm:py-10">
+        <!-- Chapter Header Meta -->
+        <div class="text-center pb-6 border-b border-black/10 dark:border-white/10 mb-6">
+          <p id="readerSubBook" class="text-xs tracking-widest uppercase font-semibold text-rose-600 dark:text-rose-400 mb-1.5">TÊN BỘ TRUYỆN</p>
+          <h1 id="readerTitle" class="text-xl sm:text-3xl font-bold leading-tight">Tiêu đề chương</h1>
         </div>
-      </div>
 
-      <!-- Font Type -->
-      <div class="flex items-center justify-between text-xs">
-        <span class="font-medium text-slate-500">Kiểu chữ</span>
-        <div class="flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5">
-          <button id="btnFontSans" class="px-3 py-1 text-xs rounded-md font-sans bg-white dark:bg-slate-700 shadow-xs font-medium">Không chân</button>
-          <button id="btnFontSerif" class="px-3 py-1 text-xs rounded-md font-serif text-slate-500">Có chân</button>
+        <!-- Text Content -->
+        <article id="readerBody" class="reader-content text-lg leading-relaxed transition-all">
+          <!-- Chapter paragraphs go here -->
+        </article>
+
+        <!-- Bottom Chapter Navigation -->
+        <div class="mt-12 pt-6 border-t border-black/10 dark:border-white/10 flex items-center justify-between gap-3">
+          <button id="btnPrevChap" class="flex-1 py-3 px-4 rounded-xl border border-black/15 dark:border-white/15 bg-black/5 dark:bg-white/5 font-semibold text-sm hover:bg-black/10 dark:hover:bg-white/10 transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-chevron-left text-xs"></i> Chương trước
+          </button>
+          <button id="btnNextChap" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-semibold text-sm shadow-md transition flex items-center justify-center gap-2">
+            Chương sau <i class="fa-solid fa-chevron-right text-xs"></i>
+          </button>
         </div>
-      </div>
 
-      <!-- Font Size -->
-      <div class="flex items-center justify-between text-xs">
-        <span class="font-medium text-slate-500">Cỡ chữ</span>
-        <div class="flex items-center gap-3">
-          <button id="btnFontDecrease" class="w-7 h-7 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-sm">A-</button>
-          <span id="currentFontSizeLabel" class="text-xs font-semibold w-6 text-center">19</span>
-          <button id="btnFontIncrease" class="w-7 h-7 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-sm">A+</button>
+        <!-- Scroll to Top Float -->
+        <div class="text-center mt-10">
+          <button id="btnReaderScrollTop" class="text-xs text-slate-400 hover:text-slate-600 p-2">
+            <i class="fa-solid fa-arrow-up mr-1"></i> Cuộn lên đầu trang
+          </button>
         </div>
-      </div>
-    </div>
-
-    <!-- Reading Story Body Area -->
-    <div class="flex-1 max-w-2xl mx-auto w-full px-5 sm:px-8 py-8 sm:py-12">
-      <!-- Chapter Header Meta -->
-      <div class="text-center pb-8 border-b border-black/10 dark:border-white/10 mb-8">
-        <p id="readerSubBook" class="text-xs tracking-widest uppercase font-semibold text-rose-600 dark:text-rose-400 mb-2">TÊN BỘ TRUYỆN</p>
-        <h1 id="readerTitle" class="text-2xl sm:text-3xl font-bold leading-tight">Tiêu đề chương</h1>
-      </div>
-
-      <!-- Text Content -->
-      <article id="readerBody" class="reader-content text-lg leading-relaxed transition-all">
-        <!-- Chapter paragraphs go here -->
-      </article>
-
-      <!-- Bottom Chapter Navigation -->
-      <div class="mt-12 pt-6 border-t border-black/10 dark:border-white/10 flex items-center justify-between gap-3">
-        <button id="btnPrevChap" class="flex-1 py-3 px-4 rounded-xl border border-black/15 dark:border-white/15 bg-black/5 dark:bg-white/5 font-semibold text-sm hover:bg-black/10 dark:hover:bg-white/10 transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-chevron-left text-xs"></i> Chương trước
-        </button>
-        <button id="btnNextChap" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-semibold text-sm shadow-md transition flex items-center justify-center gap-2">
-          Chương sau <i class="fa-solid fa-chevron-right text-xs"></i>
-        </button>
-      </div>
-
-      <!-- Scroll to Top Float -->
-      <div class="text-center mt-10">
-        <button id="btnReaderScrollTop" class="text-xs text-slate-400 hover:text-slate-600 p-2">
-          <i class="fa-solid fa-arrow-up mr-1"></i> Cuộn lên đầu trang
-        </button>
       </div>
     </div>
   </div>
@@ -660,6 +680,7 @@
 
     const viewCatalog = document.getElementById("viewCatalog");
     const viewReader = document.getElementById("viewReader");
+    const readerScrollContainer = document.getElementById("readerScrollContainer");
     const storyGrid = document.getElementById("storyGrid");
     const emptyCatalogState = document.getElementById("emptyCatalogState");
     const currentCategoryTitle = document.getElementById("currentCategoryTitle");
@@ -1090,8 +1111,7 @@
       renderReaderTOC();
       applyReaderStyles();
       viewReader.classList.remove("hidden");
-      window.scrollTo(0, 0);
-      viewReader.scrollTo(0, 0);
+      readerScrollContainer.scrollTo(0, 0);
     }
 
     function closeReader() {
@@ -1381,7 +1401,7 @@
     btnCloseReaderTOC.onclick = closeReaderTOC;
     readerTOCDrawerOverlay.onclick = closeReaderTOC;
     btnReaderScrollTop.onclick = () => {
-      viewReader.scrollTo({ top: 0, behavior: 'smooth' });
+      readerScrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     btnPrevChap.onclick = () => {
