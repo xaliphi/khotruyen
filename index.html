@@ -142,6 +142,9 @@
           <i class="fa-solid fa-feather-pointed"></i>
           <span class="hidden md:inline">Thêm Truyện</span>
         </button>
+        <button id="btnChangePassModal" class="hidden p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-lg" title="Đổi mật khẩu Admin">
+          <i class="fa-solid fa-key"></i>
+        </button>
         <button id="btnHeaderTheme" class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
           <i class="fa-solid fa-moon dark:hidden"></i>
           <i class="fa-solid fa-sun hidden dark:inline text-amber-400"></i>
@@ -498,15 +501,34 @@
   <div id="adminAuthModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200 flex items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl p-6 border border-slate-200 dark:border-slate-800 text-center">
       <div class="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center mx-auto mb-3 text-lg">
-        <i class="fa-solid fa-user-shield"></i>
+        <i class="fa-solid fa-shield-halved"></i>
       </div>
-      <h3 class="font-bold text-base text-slate-900 dark:text-white">Xác Thực Tác Giả</h3>
-      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">Nhập mã PIN tác giả để mở khóa thêm & xóa truyện.</p>
-      <input type="password" id="adminPinInput" maxlength="12" placeholder="PIN: 123456" 
-        class="w-full text-center tracking-widest text-base font-bold py-2.5 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 mb-4">
+      <h3 class="font-bold text-base text-slate-900 dark:text-white">Đăng Nhập Quản Trị Viên</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">Chỉ dành cho Tác giả quản lý nội dung.</p>
+      <input type="password" id="adminPinInput" maxlength="20" placeholder="••••••••" 
+        class="w-full text-center tracking-widest text-lg font-bold py-2.5 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 mb-4">
       <div class="flex gap-2">
-        <button id="btnCancelPin" class="flex-1 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-xl transition">Hủy</button>
-        <button id="btnSubmitPin" class="flex-1 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow transition">Mở Khóa</button>
+        <button id="btnCancelPin" class="flex-1 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-xl transition">Hủy</button>
+        <button id="btnSubmitPin" class="flex-1 py-2.5 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow transition">Xác Nhận</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE PASSWORD MODAL -->
+  <div id="changePasswordModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl p-6 border border-slate-200 dark:border-slate-800 text-center">
+      <div class="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center mx-auto mb-3 text-lg">
+        <i class="fa-solid fa-key"></i>
+      </div>
+      <h3 class="font-bold text-base text-slate-900 dark:text-white">Đổi Mật Khẩu Admin</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">Nhập mật khẩu bí mật mới của riêng anh</p>
+      <input type="password" id="newPinInput" maxlength="20" placeholder="Mật khẩu mới..." 
+        class="w-full text-center text-sm font-bold py-2.5 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 mb-3">
+      <input type="password" id="confirmNewPinInput" maxlength="20" placeholder="Xác nhận mật khẩu..." 
+        class="w-full text-center text-sm font-bold py-2.5 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 mb-4">
+      <div class="flex gap-2">
+        <button id="btnCancelChangePass" class="flex-1 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-xl transition">Hủy</button>
+        <button id="btnSaveNewPass" class="flex-1 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow transition">Lưu Mật Khẩu</button>
       </div>
     </div>
   </div>
@@ -580,8 +602,19 @@
     ];
 
     let stories = DEFAULT_STORIES;
-    let isAdminUnlocked = sessionStorage.getItem("app_admin_unlocked") === "true";
+    // Lưu trạng thái đăng nhập vĩnh viễn trên máy của Admin
+    let isAdminUnlocked = localStorage.getItem("app_admin_unlocked") === "true";
     let storedAdminPin = "123456";
+
+    // Đồng bộ mật khẩu admin từ đám mây (nếu có)
+    function syncSecurityConfig() {
+      if (!isCloudReady || !db) return;
+      db.collection("config").doc("security").onSnapshot((doc) => {
+        if (doc.exists && doc.data().adminPin) {
+          storedAdminPin = doc.data().adminPin;
+        }
+      }, (err) => console.log("Security config sync fallback"));
+    }
 
     let selectedCategory = "all";
     let selectedStatus = "all";
@@ -661,6 +694,12 @@
     const adminPinInput = document.getElementById("adminPinInput");
     const btnCancelPin = document.getElementById("btnCancelPin");
     const btnSubmitPin = document.getElementById("btnSubmitPin");
+    const btnChangePassModal = document.getElementById("btnChangePassModal");
+    const changePasswordModal = document.getElementById("changePasswordModal");
+    const newPinInput = document.getElementById("newPinInput");
+    const confirmNewPinInput = document.getElementById("confirmNewPinInput");
+    const btnCancelChangePass = document.getElementById("btnCancelChangePass");
+    const btnSaveNewPass = document.getElementById("btnSaveNewPass");
 
     const btnToggleMobileSidebar = document.getElementById("btnToggleMobileSidebar");
     const mobileCategoryDrawer = document.getElementById("mobileCategoryDrawer");
@@ -738,10 +777,11 @@
 
     function updateAdminUIState() {
       if (isAdminUnlocked) {
-        adminLockIcon.className = "fa-solid fa-lock-open text-xs text-emerald-500";
-        adminLockText.textContent = "Đã mở khóa";
-        btnAdminToggle.className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-all bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800";
+        adminLockIcon.className = "fa-solid fa-user-check text-xs text-emerald-500";
+        adminLockText.textContent = "Admin (Đăng xuất)";
+        btnAdminToggle.className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-all bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-300";
         btnOpenCMS.classList.remove("hidden");
+        btnChangePassModal.classList.remove("hidden");
         btnEditStoryCMS.classList.remove("hidden");
         btnEditStoryCMS.classList.add("flex");
         btnDeleteStory.classList.remove("hidden");
@@ -749,10 +789,12 @@
         btnQuickToggleStatus.classList.remove("hidden");
         btnQuickToggleStatus.classList.add("flex");
       } else {
+        // Chế độ Độc giả / Thành viên (Vợ anh)
         adminLockIcon.className = "fa-solid fa-lock text-xs text-slate-400";
         adminLockText.textContent = "Tác giả";
         btnAdminToggle.className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-all bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 hover:bg-slate-200";
         btnOpenCMS.classList.add("hidden");
+        btnChangePassModal.classList.add("hidden");
         btnEditStoryCMS.classList.add("hidden");
         btnEditStoryCMS.classList.remove("flex");
         btnDeleteStory.classList.add("hidden");
@@ -773,27 +815,84 @@
 
     btnAdminToggle.onclick = () => {
       if (isAdminUnlocked) {
+        // Đăng xuất về quyền Member
         isAdminUnlocked = false;
-        sessionStorage.setItem("app_admin_unlocked", "false");
+        localStorage.removeItem("app_admin_unlocked");
         updateAdminUIState();
-        showToast("Đã khóa chế độ tác giả. Vợ chỉ có thể đọc!");
+        showToast("Đã đăng xuất. Bạn đang ở chế độ Độc giả!");
       } else {
         openAdminAuthModal();
       }
     };
     btnCancelPin.onclick = closeAdminAuthModal;
     btnSubmitPin.onclick = () => {
-      if (adminPinInput.value.trim() === storedAdminPin) {
+      const entered = adminPinInput.value.trim();
+      if (entered === storedAdminPin) {
         isAdminUnlocked = true;
-        sessionStorage.setItem("app_admin_unlocked", "true");
+        // Ghi nhớ Admin vĩnh viễn trên thiết bị này của anh
+        localStorage.setItem("app_admin_unlocked", "true");
         updateAdminUIState();
         closeAdminAuthModal();
-        showToast("Chào mừng Tác giả Anh Nhựt!");
+        showToast("Xin chào Quản trị viên Anh Nhựt! Toàn quyền kích hoạt.");
       } else {
-        showToast("Mã PIN không chính xác!");
+        showToast("Mật khẩu không chính xác!");
         adminPinInput.value = "";
       }
     };
+    adminPinInput.onkeydown = (e) => {
+      if (e.key === 'Enter') btnSubmitPin.click();
+    };
+
+    // Đổi mật khẩu Admin
+    btnChangePassModal.onclick = () => {
+      newPinInput.value = "";
+      confirmNewPinInput.value = "";
+      changePasswordModal.classList.remove("opacity-0", "pointer-events-none");
+      setTimeout(() => newPinInput.focus(), 100);
+    };
+    btnCancelChangePass.onclick = () => {
+      changePasswordModal.classList.add("opacity-0", "pointer-events-none");
+    };
+    btnSaveNewPass.onclick = async () => {
+      const p1 = newPinInput.value.trim();
+      const p2 = confirmNewPinInput.value.trim();
+      if (!p1 || p1.length < 4) {
+        showToast("Mật khẩu phải từ 4 ký tự trở lên!");
+        return;
+      }
+      if (p1 !== p2) {
+        showToast("Mật khẩu xác nhận không khớp!");
+        return;
+      }
+      storedAdminPin = p1;
+      if (isCloudReady && db) {
+        try {
+          await db.collection("config").doc("security").set({ adminPin: p1 });
+        } catch(e) {
+          console.error("Lỗi lưu mật khẩu lên mây:", e);
+        }
+      }
+      btnCancelChangePass.click();
+      showToast("Đã đổi mật khẩu Admin thành công!");
+    };
+
+    // Cơ chế chạm liên tiếp 3 lần vào logo để mở khung đăng nhập Admin bí mật
+    let logoTapCount = 0;
+    let logoTapTimer = null;
+    document.getElementById("btnGoHome").addEventListener("click", () => {
+      logoTapCount++;
+      clearTimeout(logoTapTimer);
+      if (logoTapCount >= 3) {
+        logoTapCount = 0;
+        if (!isAdminUnlocked) {
+          openAdminAuthModal();
+        } else {
+          showToast("Bạn đang trong chế độ Admin!");
+        }
+      } else {
+        logoTapTimer = setTimeout(() => { logoTapCount = 0; }, 600);
+      }
+    });
 
     function promptDeleteStory(bookId) {
       if (!isAdminUnlocked) return;
@@ -1494,6 +1593,7 @@
       applyReaderStyles();
       updateAdminUIState();
       setupCloudSync();
+      syncSecurityConfig();
     });
   </script>
 </body>
