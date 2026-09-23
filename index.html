@@ -412,14 +412,16 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Thể loại</label>
-              <select id="cmsGenre" class="w-full text-sm px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500">
-                <option value="Ngôn Tình">Ngôn Tình / Tình Cảm</option>
-                <option value="Đoản Văn">Đoản Văn / Kỷ Niệm</option>
-                <option value="Đô Thị">Đô Thị / Đời Thường</option>
-                <option value="Huyền Huyễn">Huyền Huyễn</option>
-                <option value="Tiên Hiệp">Tiên Hiệp</option>
-              </select>
+              <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                Thể loại (chọn tối đa 5) *
+              </label>
+              <div id="cmsGenreSelectorContainer" class="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl max-h-36 overflow-y-auto space-y-1.5 text-xs">
+                <!-- Dynamically populated genre checkboxes -->
+              </div>
+              <div class="text-[10px] text-slate-400 mt-1 flex justify-between">
+                <span>Đã chọn: <span id="cmsSelectedGenreCount" class="font-bold text-rose-500">0</span>/5</span>
+                <span id="cmsGenreWarning" class="text-amber-500 hidden">Đạt tối đa 5 thể loại</span>
+              </div>
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Trạng thái truyện</label>
@@ -594,6 +596,32 @@
     let readerFont = localStorage.getItem("reader_font") || "sans";
     let readerFontSize = parseInt(localStorage.getItem("reader_font_size")) || 19;
 
+    // Danh sách thể loại truyện phong phú
+    const AVAILABLE_GENRES = [
+      "Ngôn Tình",
+      "Xuyên Không",
+      "Cung Đấu",
+      "Mạt Thế",
+      "Dị Giới",
+      "Trọng Sinh",
+      "Tiên Hiệp",
+      "Huyền Huyễn",
+      "Đô Thị",
+      "Đoản Văn",
+      "Thanh Xuân Vườn Trường",
+      "Gia Đấu",
+      "Hài Hước",
+      "Trinh Thám",
+      "Linh Dị - Kinh Dị",
+      "Điền Văn",
+      "Võng Du",
+      "Khoa Huyễn",
+      "Hệ Thống",
+      "Nữ Cường"
+    ];
+
+    let selectedCmsGenres = [];
+
     // Bộ đệm danh sách chương đang chỉnh sửa trong CMS Modal
     let editingChapters = [];
 
@@ -693,14 +721,14 @@
     const cmsEditBookId = document.getElementById("cmsEditBookId");
     const cmsTitle = document.getElementById("cmsTitle");
     const cmsAuthor = document.getElementById("cmsAuthor");
-    const cmsGenre = document.getElementById("cmsGenre");
     const cmsStatus = document.getElementById("cmsStatus");
     const cmsCover = document.getElementById("cmsCover");
     const cmsSummary = document.getElementById("cmsSummary");
     const cmsChaptersContainer = document.getElementById("cmsChaptersContainer");
     const btnAddChapterRow = document.getElementById("btnAddChapterRow");
-
-    // CMS Tab & Bulk Split Elements
+    const cmsGenreSelectorContainer = document.getElementById("cmsGenreSelectorContainer");
+    const cmsSelectedGenreCount = document.getElementById("cmsSelectedGenreCount");
+    const cmsGenreWarning = document.getElementById("cmsGenreWarning");
     const btnTabManualChaps = document.getElementById("btnTabManualChaps");
     const btnTabBulkChaps = document.getElementById("btnTabBulkChaps");
     const panelManualChaps = document.getElementById("panelManualChaps");
@@ -796,7 +824,13 @@
 
     function getAllGenres() {
       const genres = new Set();
-      stories.forEach(s => { if (s.genre) genres.add(s.genre); });
+      stories.forEach(s => {
+        if (Array.isArray(s.genre)) {
+          s.genre.forEach(g => genres.add(g));
+        } else if (s.genre) {
+          genres.add(s.genre);
+        }
+      });
       return ["all", ...Array.from(genres)];
     }
 
@@ -806,12 +840,15 @@
         return genres.map(cat => {
           const isActive = selectedCategory === cat;
           const label = cat === "all" ? "Tất Cả Thể Loại" : cat;
-          const count = cat === "all" ? stories.length : stories.filter(s => s.genre === cat).length;
+          const count = cat === "all" ? stories.length : stories.filter(s => {
+            if (Array.isArray(s.genre)) return s.genre.includes(cat);
+            return s.genre === cat;
+          }).length;
           return `
             <button data-cat="${cat}" class="cat-nav-btn ${isActive ? 'bg-rose-500 text-white shadow-sm shadow-rose-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'} w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all text-left">
               <span class="flex items-center gap-2.5">
                 <i class="fa-solid ${cat === 'all' ? 'fa-border-all' : 'fa-tag'} text-xs opacity-70"></i>
-                <span>${label}</span>
+                <span class="truncate">${label}</span>
               </span>
               <span class="text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}">${count}</span>
             </button>
@@ -837,7 +874,15 @@
 
     function renderStoriesGrid() {
       let filtered = stories.filter(story => {
-        const matchCategory = selectedCategory === "all" || story.genre === selectedCategory;
+        let matchCategory = false;
+        if (selectedCategory === "all") {
+          matchCategory = true;
+        } else if (Array.isArray(story.genre)) {
+          matchCategory = story.genre.includes(selectedCategory);
+        } else {
+          matchCategory = story.genre === selectedCategory;
+        }
+
         const matchStatus = selectedStatus === "all" || story.status === selectedStatus;
         const matchSearch = searchQuery === "" || 
           story.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -877,6 +922,8 @@
 
         const coverSrc = story.cover || "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=600&auto=format&fit=crop";
 
+        const genreDisplay = Array.isArray(story.genre) ? story.genre.slice(0, 2).join(" • ") : (story.genre || 'Tiểu Thuyết');
+
         return `
           <div data-book-id="${story.id}" class="book-card group cursor-pointer bg-white dark:bg-slate-850 rounded-2xl p-2.5 sm:p-3 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-rose-300 dark:hover:border-rose-900 transition-all duration-200 flex flex-col relative">
             <div class="relative w-full aspect-[3/4] rounded-xl overflow-hidden mb-2.5 bg-slate-100 dark:bg-slate-800">
@@ -890,7 +937,7 @@
             </div>
             <div class="flex-1 flex flex-col justify-between min-w-0">
               <div>
-                <span class="text-[10px] font-semibold text-rose-600 dark:text-rose-400 uppercase">${story.genre || 'Tiểu Thuyết'}</span>
+                <span class="text-[10px] font-semibold text-rose-600 dark:text-rose-400 uppercase line-clamp-1">${genreDisplay}</span>
                 <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-1 mt-0.5">${story.title}</h3>
                 <p class="text-xs text-slate-400 line-clamp-1 mt-0.5">${story.author || 'Tác giả'}</p>
               </div>
@@ -912,7 +959,10 @@
       detailCover.src = activeBook.cover || "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=600&auto=format&fit=crop";
       detailTitle.textContent = activeBook.title;
       detailAuthor.querySelector("span").textContent = activeBook.author || "Anh Nhựt";
-      detailGenre.textContent = activeBook.genre || "Tiểu Thuyết";
+      
+      const genreArray = Array.isArray(activeBook.genre) ? activeBook.genre : [activeBook.genre || "Tiểu Thuyết"];
+      detailGenre.innerHTML = genreArray.map(g => `<span class="inline-block px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 mr-1 text-[11px] font-semibold uppercase">${g}</span>`).join("");
+
       detailSummary.textContent = activeBook.summary || "Chưa có lời tựa.";
       
       const isCompleted = activeBook.status === 'completed';
@@ -1157,50 +1207,71 @@
 
       // Regex tìm tiêu đề chương dạng: Chương 1, Chương 1: ..., Hồi 1, Chapter 1...
       const chapterPattern = /(?:^|\n)(?:(?:Chương|Hồi|Chapter|Tập)\s*(\d+|[IVXLCDM]+)[\s:.-]*([^\n]*))/gi;
-      
-      let matches = [];
-      let match;
-      while ((match = chapterPattern.exec(rawText)) !== null) {
-        matches.push({
-          index: match.index,
-          num: match[1],
-          title: match[2] ? match[2].trim() : "",
-          fullHeader: match[0].trim()
-        });
-      }
+      const matches = [...rawText.matchAll(chapterPattern)];
 
       if (matches.length === 0) {
-        // Không tìm thấy từ khóa chương, xem toàn bộ là 1 chương
-        syncChaptersFromDOM();
-        editingChapters.push({
-          id: editingChapters.length + 1,
-          title: `Chương ${editingChapters.length + 1}`,
+        editingChapters = [{
+          id: 1,
+          title: "Chương 1",
           content: rawText
-        });
-        showToast("Đã thêm toàn bộ nội dung thành 1 chương!");
+        }];
       } else {
-        syncChaptersFromDOM();
-        // Cắt văn bản thành từng phần
+        const parsed = [];
         for (let i = 0; i < matches.length; i++) {
-          const current = matches[i];
-          const nextIndex = (i + 1 < matches.length) ? matches[i + 1].index : rawText.length;
-          
-          let chapterBody = rawText.substring(current.index + current.fullHeader.length, nextIndex).trim();
-          let chapterTitle = current.title ? `${current.title}` : `Chương ${current.num || (editingChapters.length + 1)}`;
+          const match = matches[i];
+          const chapNum = match[1] || (i + 1);
+          const rawSubTitle = (match[2] || "").trim();
+          const title = rawSubTitle ? `Chương ${chapNum}: ${rawSubTitle}` : `Chương ${chapNum}`;
 
-          editingChapters.push({
-            id: editingChapters.length + 1,
-            title: chapterTitle,
-            content: chapterBody
+          const startIndex = match.index + match[0].length;
+          const endIndex = (i + 1 < matches.length) ? matches[i + 1].index : rawText.length;
+          const content = rawText.slice(startIndex, endIndex).trim();
+
+          parsed.push({
+            id: i + 1,
+            title: title,
+            content: content
           });
         }
-        showToast(`🎉 Đã tự động nhận diện và bóc tách thành công ${matches.length} chương!`);
+        editingChapters = parsed;
       }
 
-      bulkPasteInput.value = "";
-      switchCMSTab('manual');
       renderCMSChaptersList();
+      switchCMSTab('manual');
+      showToast(`Đã tự động tách thành công ${editingChapters.length} chương!`);
     };
+
+    function renderGenreSelector() {
+      cmsGenreSelectorContainer.innerHTML = AVAILABLE_GENRES.map(g => {
+        const isChecked = selectedCmsGenres.includes(g);
+        return `
+          <label class="flex items-center gap-2 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer select-none">
+            <input type="checkbox" value="${g}" ${isChecked ? 'checked' : ''} class="genre-checkbox accent-rose-600 rounded">
+            <span class="text-slate-700 dark:text-slate-200">${g}</span>
+          </label>
+        `;
+      }).join("");
+
+      cmsSelectedGenreCount.textContent = selectedCmsGenres.length;
+
+      cmsGenreSelectorContainer.querySelectorAll(".genre-checkbox").forEach(cb => {
+        cb.onchange = () => {
+          const val = cb.value;
+          if (cb.checked) {
+            if (selectedCmsGenres.length >= 5) {
+              cb.checked = false;
+              cmsGenreWarning.classList.remove("hidden");
+              setTimeout(() => cmsGenreWarning.classList.add("hidden"), 2000);
+              return;
+            }
+            if (!selectedCmsGenres.includes(val)) selectedCmsGenres.push(val);
+          } else {
+            selectedCmsGenres = selectedCmsGenres.filter(g => g !== val);
+          }
+          cmsSelectedGenreCount.textContent = selectedCmsGenres.length;
+        };
+      });
+    }
 
     function openCMSModal(storyToEdit = null) {
       if (!isAdminUnlocked) {
@@ -1216,25 +1287,33 @@
         cmsEditBookId.value = storyToEdit.id;
         cmsTitle.value = storyToEdit.title || "";
         cmsAuthor.value = storyToEdit.author || "";
-        cmsGenre.value = storyToEdit.genre || "Ngôn Tình";
         cmsStatus.value = storyToEdit.status || "ongoing";
         cmsCover.value = storyToEdit.cover || "";
         cmsSummary.value = storyToEdit.summary || "";
         
+        if (Array.isArray(storyToEdit.genre)) {
+          selectedCmsGenres = [...storyToEdit.genre];
+        } else if (storyToEdit.genre) {
+          selectedCmsGenres = [storyToEdit.genre];
+        } else {
+          selectedCmsGenres = ["Ngôn Tình"];
+        }
+
         editingChapters = storyToEdit.chapters ? JSON.parse(JSON.stringify(storyToEdit.chapters)) : [];
       } else {
         cmsModalTitle.textContent = "Thêm Truyện Mới Lên Đám Mây";
         cmsEditBookId.value = "";
         cmsTitle.value = "";
         cmsAuthor.value = "Anh Nhựt";
-        cmsGenre.value = "Ngôn Tình";
         cmsStatus.value = "ongoing";
         cmsCover.value = "";
         cmsSummary.value = "";
+        selectedCmsGenres = ["Ngôn Tình"];
         
         editingChapters = [{ id: 1, title: "Khởi Đầu", content: "" }];
       }
 
+      renderGenreSelector();
       renderCMSChaptersList();
       cmsModal.classList.remove("opacity-0", "pointer-events-none");
     }
@@ -1247,6 +1326,11 @@
       const title = cmsTitle.value.trim();
       if (!title) {
         showToast("Vui lòng nhập tên tác phẩm!");
+        return;
+      }
+
+      if (selectedCmsGenres.length === 0) {
+        showToast("Vui lòng chọn ít nhất 1 thể loại!");
         return;
       }
 
@@ -1268,7 +1352,7 @@
 
       const bookId = cmsEditBookId.value;
       const author = cmsAuthor.value.trim() || "Anh Nhựt";
-      const genre = cmsGenre.value;
+      const genre = [...selectedCmsGenres];
       const status = cmsStatus.value;
       const cover = cmsCover.value.trim() || "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=600&auto=format&fit=crop";
       const summary = cmsSummary.value.trim();
